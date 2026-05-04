@@ -6,7 +6,7 @@ import time
 import requests
 
 
-SERVER_URL = "http://localhost:5000"
+SERVER_URL = "http://localhost:3000"
 
 # Game settings
 WIDTH = 40
@@ -46,6 +46,14 @@ def draw_snake(win, snake):
 def draw_food(win, food):
     win.addch(food[0], food[1], "*")
 
+def draw_box(win):
+    # Top and bottom borders
+    for x in range(0, WIDTH):
+        win.addch(HEIGHT, x, "-")
+
+    # Left and right borders
+    for y in range(0, HEIGHT + 1):
+        win.addch(y, WIDTH, "|")
 
 def draw_score(win, score):
     win.addstr(0, 2, f" Score: {score} ")
@@ -53,8 +61,8 @@ def draw_score(win, score):
 
 def spawn_food(snake):
     while True:
-        y = random.randint(1, HEIGHT)
-        x = random.randint(1, WIDTH)
+        y = random.randint(1, HEIGHT - 1)
+        x = random.randint(1, WIDTH - 1)
         if (y, x) not in snake:
             return (y, x)
 
@@ -156,8 +164,8 @@ def game_loop(win):
         head_y, head_x = snake[0]
         new_head = (head_y + direction[0], head_x + direction[1])
 
-        # Check wall collision
-        if new_head[0] >= 1 and new_head[0] <= HEIGHT - 1 and new_head[1] >= 1 and new_head[1] <= WIDTH - 1:
+        # Check wall collision (out of bounds -> crash)
+        if not (1 <= new_head[0] <= HEIGHT - 1 and 1 <= new_head[1] <= WIDTH - 1):
             return score, False, "crashed into a wall"
 
         # Check self collision
@@ -175,7 +183,8 @@ def game_loop(win):
         else:
             snake.pop()
 
-        # Draw everything
+        win.clear()
+        draw_box(win)
         draw_border(win)
         draw_snake(win, snake)
         draw_food(win, food)
